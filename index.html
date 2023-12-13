@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<base target="_top">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<title>CRS.Simple example - Leaflet</title>
+	
+	<link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+
+    <link rel="stylesheet" href="node_modules/leaflet-search/dist/leaflet-search.min.css" />
+    <link rel="stylesheet" href="node_modules/leaflet-search/dist/leaflet-search.mobile.min.css" />
+    <script src="node_modules/leaflet-search/dist/leaflet-search.min.js"></script>
+
+	<style>
+		html, body {
+			height: 100%;
+			margin: 0;
+		}
+		.leaflet-container {
+			height: 900px;
+			width: 100%;
+			max-width: 100%;
+			max-height: 100%;
+		}
+	</style>
+
+	
+</head>
+<body>
+
+<div id='map'></div>
+
+<script src="sw.geojson.js"></script>
+<script>
+
+	const map = L.map('map', {
+		crs: L.CRS.Simple,
+	});
+	const geojsonOpts = {
+		pointToLayer: function(feature, latlng) {
+			var title = `
+			${feature.properties.name}
+			${feature.properties.amenity.join(", ")}
+			${feature.properties.residents.join(", ")}
+			`;
+			return L.marker(latlng, {
+				title: feature.properties.name,
+				//searchKey: title,
+				icon: L.divIcon({
+				//	className: feature.properties.amenity,
+					iconSize: L.point(16, 16),
+					html: feature.properties.key, // User visible label
+				})
+			}).bindPopup(feature.properties.html);
+		}
+	};
+	// 6458x5030
+
+	const bounds = [[0, 0], [503, 645]];
+	const image = L.imageOverlay('map-crop.png', bounds).addTo(map);
+
+	// Get all amenity types
+	var amenities = [];
+	SW.features.forEach(function(feature){
+		feature.properties.amenity.forEach(function(amenity){
+			if (amenities.indexOf(amenity) === -1) {
+				amenities.push(amenity);
+			}
+		});
+	});
+
+	var poiLayers = L.layerGroup([
+		L.geoJson(SW, geojsonOpts),
+	])
+	.addTo(map);
+
+	L.control.search({
+		layer: poiLayers,
+		initial: false,
+		//propertyName: 'searchKey',
+		buildTip: function(text, val) {
+			var key = val.layer.feature.properties.name;
+			var type = val.layer.feature.properties.amenity.join(', ');
+			console.log(text, val);
+			return `<a href="#" class="${type}"><b>${key}</b>&nbsp;${type}</a>`;
+		},
+		filterData: function(text, records) {
+			var x = Object.assign({}, ...
+				Object.entries(records)
+					.filter(([k,v]) => {
+						return (
+							v.layer.feature.properties.search.toLowerCase().indexOf(text.toLowerCase()) > -1
+						)
+					})
+					.map(([k,v]) => ({[k]:v}))
+			);
+			console.log(x);
+			return x;
+		}
+	})
+	.addTo(map);
+
+	map.on('click', function(ev){
+		var latlng = map.mouseEventToLatLng(ev.originalEvent);
+		console.log(latlng.lat + ', ' + latlng.lng);
+	});
+
+	map.fitBounds(bounds);
+
+</script>
+
+
+
+</body>
+</html>
+
