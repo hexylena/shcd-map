@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 import json
 import yaml
-with open('sw.yaml', 'r') as handle:
-    y = yaml.safe_load(handle)
-
 directory = {}
 with open('directory.tsv', 'r') as handle:
     d = []
@@ -24,45 +21,53 @@ with open('directory.tsv', 'r') as handle:
 for k, v in directory.items():
     directory[k] = list(set(v))
 
-geojson = {}
-geojson['type'] = 'FeatureCollection'
-geojson['features'] = []
 
-for k, v in y.items():
-    feature = {}
-    feature['type'] = 'Feature'
 
-    ref = f'{k}SW'
-    feature['properties'] = {}
-    feature['properties']['name'] = ref
-    feature['properties']['district'] = 'SW'
-    residents = directory.get(ref, [])
-    feature['properties']['amenity'] = list(set([r[0] for r in residents]))
-    feature['properties']['residents'] = list(set([r[1] for r in residents]))
-    feature['properties']['pairs'] = residents
-    grouped = {
-        k: [r[1] for r in residents if r[0] == k]
-        for k in set([r[0] for r in residents])
-    }
-    feature['properties']['html'] = ''.join([
-        f'<b>{k2}</b>: <ul><li>{"</li><li>".join(v2)}</li></ul>'
-        for k2, v2 in grouped.items()
-    ])
-    feature['properties']['search'] = f"{k}SW SW{k} "
-    for k2, v2 in grouped.items():
-        feature['properties']['search'] += f'{k2} {", ".join(v2)} '
+for region in ('sw', 'se'):
+    print(region)
+    with open(f'{region}.yaml', 'r') as handle:
+        y = yaml.safe_load(handle)
 
-    feature['properties']['key'] = k
 
-    feature['geometry'] = {}
-    feature['geometry']['type'] = 'Point'
-    feature['geometry']['coordinates'] = [*v['p'][::-1]]
+    geojson = {}
+    geojson['type'] = 'FeatureCollection'
+    geojson['features'] = []
 
-    geojson['features'].append(feature)
+    for k, v in y.items():
+        feature = {}
+        feature['type'] = 'Feature'
 
-with open('sw.geojson', 'w') as handle:
-    json.dump(geojson, handle)
+        ref = f'{k}{region.upper()}'
+        feature['properties'] = {}
+        feature['properties']['name'] = ref
+        feature['properties']['district'] = region.upper()
+        residents = directory.get(ref, [])
+        feature['properties']['amenity'] = list(set([r[0] for r in residents]))
+        feature['properties']['residents'] = list(set([r[1] for r in residents]))
+        feature['properties']['pairs'] = residents
+        grouped = {
+            k: [r[1] for r in residents if r[0] == k]
+            for k in set([r[0] for r in residents])
+        }
+        feature['properties']['html'] = ''.join([
+            f'<b>{k2}</b>: <ul><li>{"</li><li>".join(v2)}</li></ul>'
+            for k2, v2 in grouped.items()
+        ])
+        feature['properties']['search'] = f"{k}{region.upper()} {region.upper()}{k} "
+        for k2, v2 in grouped.items():
+            feature['properties']['search'] += f'{k2} {", ".join(v2)} '
 
-with open('sw.geojson.js', 'w') as handle:
-    handle.write('const SW = ')
-    json.dump(geojson, handle)
+        feature['properties']['key'] = k
+
+        feature['geometry'] = {}
+        feature['geometry']['type'] = 'Point'
+        feature['geometry']['coordinates'] = [*v['p'][::-1]]
+
+        geojson['features'].append(feature)
+
+    with open(f'{region}.geojson', 'w') as handle:
+        json.dump(geojson, handle)
+
+    with open(f'{region}.geojson.js', 'w') as handle:
+        handle.write(f'const {region.upper()} = ')
+        json.dump(geojson, handle)

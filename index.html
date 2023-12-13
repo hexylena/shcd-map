@@ -37,6 +37,7 @@
 <div id='map'></div>
 
 <script src="sw.geojson.js"></script>
+<script src="se.geojson.js"></script>
 <script>
 
 	const map = L.map('map', {
@@ -66,17 +67,25 @@
 	const image = L.imageOverlay('map-crop.png', bounds).addTo(map);
 
 	// Get all amenity types
-	var amenities = [];
-	SW.features.forEach(function(feature){
-		feature.properties.amenity.forEach(function(amenity){
-			if (amenities.indexOf(amenity) === -1) {
-				amenities.push(amenity);
-			}
-		});
-	});
+	// var amenities = [];
+	// SW.features.forEach(function(feature){
+	// 	feature.properties.amenity.forEach(function(amenity){
+	// 		if (amenities.indexOf(amenity) === -1) {
+	// 			amenities.push(amenity);
+	// 		}
+	// 	});
+	// });
+	// SE.features.forEach(function(feature){
+	// 	feature.properties.amenity.forEach(function(amenity){
+	// 		if (amenities.indexOf(amenity) === -1) {
+	// 			amenities.push(amenity);
+	// 		}
+	// 	});
+	// });
 
 	var poiLayers = L.layerGroup([
 		L.geoJson(SW, geojsonOpts),
+		L.geoJson(SE, geojsonOpts),
 	])
 	.addTo(map);
 
