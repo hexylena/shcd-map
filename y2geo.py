@@ -61,7 +61,8 @@ for region in ('sw', 'se'):
 
         feature['geometry'] = {}
         feature['geometry']['type'] = 'Point'
-        feature['geometry']['coordinates'] = [*v['p'][::-1]]
+
+        feature['geometry']['coordinates'] = [*v[::-1]]
 
         geojson['features'].append(feature)
 
