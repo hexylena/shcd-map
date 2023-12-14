@@ -38,6 +38,9 @@
 
 <script src="sw.geojson.js"></script>
 <script src="se.geojson.js"></script>
+<script src="nw.geojson.js"></script>
+<script src="wc.geojson.js"></script>
+<script src="ec.geojson.js"></script>
 <script>
 
 	const map = L.map('map', {
@@ -54,7 +57,7 @@
 				title: feature.properties.name,
 				//searchKey: title,
 				icon: L.divIcon({
-				//	className: feature.properties.amenity,
+					className: `${feature.properties.district} region`,
 					iconSize: L.point(16, 16),
 					html: feature.properties.key, // User visible label
 				})
@@ -86,6 +89,9 @@
 	var poiLayers = L.layerGroup([
 		L.geoJson(SW, geojsonOpts),
 		L.geoJson(SE, geojsonOpts),
+		L.geoJson(NW, geojsonOpts),
+		L.geoJson(WC, geojsonOpts),
+		L.geoJson(EC, geojsonOpts),
 	])
 	.addTo(map);
 
@@ -115,9 +121,11 @@
 	})
 	.addTo(map);
 
+	var i = 1;
 	map.on('click', function(ev){
 		var latlng = map.mouseEventToLatLng(ev.originalEvent);
-		console.log(latlng.lat + ', ' + latlng.lng);
+		console.log(`${i}: [${latlng.lat}, ${latlng.lng}]`);
+		i++;
 	});
 
 	map.fitBounds(bounds);
@@ -125,6 +133,20 @@
 </script>
 
 
+<style>
+.region {
+	border: 1px solid black;
+	background: white;
+	text-align: center;
+	border-radius: 25%;
+}
+.NW { background: #ffa; }
+.SE { background: #faf; }
+.SW { background: #aff; }
+.NE { background: #cfc; }
+.EC { background: #fcc; }
+.WC { background: #ccf; }
+</style>
 
 </body>
 </html>

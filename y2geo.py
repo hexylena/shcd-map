@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import json
+import glob
 import yaml
+
 directory = {}
 with open('directory.tsv', 'r') as handle:
     d = []
@@ -21,9 +23,7 @@ with open('directory.tsv', 'r') as handle:
 for k, v in directory.items():
     directory[k] = list(set(v))
 
-
-
-for region in ('sw', 'se'):
+for region in [x.replace('.yaml', '') for x in glob.glob('*.yaml')]:
     print(region)
     with open(f'{region}.yaml', 'r') as handle:
         y = yaml.safe_load(handle)
